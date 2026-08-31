@@ -1,4 +1,4 @@
-HIRATavrSavr5
+TavrSavr
 ==============================
 
 
@@ -38,7 +38,7 @@ How to run
 	minCellCount <- 5
 	
 	# The folder where the study intermediate and result files will be written:
-	outputFolder <- "c:/HIRATavrSavr5"
+	outputFolder <- "c:/TavrSavr"
 	
 	# Details for connecting to the server:
 	# See ?DatabaseConnector::createConnectionDetails for help
@@ -97,11 +97,11 @@ How to run
 
 License
 =======
-The HIRATavrSavr5 package is licensed under Apache License 2.0
+The TavrSavr package is licensed under Apache License 2.0
 
 Development
 ===========
-HIRATavrSavr5 was developed in ATLAS and R Studio.
+TavrSavr was developed in ATLAS and R Studio.
 
 ### Development status
 
