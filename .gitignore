@@ -1,0 +1,13 @@
+output/
+CohortMethodOutput/
+
+export/
+
+*.rds
+*.zip
+*.sqlite
+
+.Rhistory
+.RData
+.Rproj.user/
+.Renviron

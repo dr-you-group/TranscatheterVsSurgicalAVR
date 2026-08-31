@@ -1,0 +1,22 @@
+atlasId,atlasName,cohortId,name
+783,[26HIRAMDV] TAVR,783,26HIRAMDV_TAVR
+782,[26HIRAMDV] SAVR,782,26HIRAMDV_SAVR
+797,[26HIRAMDV] Primary_Reintervention,797,26HIRAMDV_Primary_Reintervention
+854,[26HIRAMDV] Primary_Allcause_mortality_or_disabling_stroke,854,26HIRAMDV_Primary_Allcause_mortality_or_disabling_stroke
+855,[26HIRAMDV] Secondary_All_stroke,855,26HIRAMDV_Secondary_All_stroke
+856,[26HIRAMDV] Secondary_All_cause_mortality,856,26HIRAMDV_Secondary_All_cause_mortality
+857,"[26HIRAMDV] Secondary_All_cause_mortality,inpatient_stroke,aortic_valve_hospitalization",857,26HIRAMDV_Secondary_All_cause_mortalityinpatient_strokeaortic_valve_hospitalization
+858,[26HIRAMDV] Secondary_aortic_valve_hospitalization,858,26HIRAMDV_Secondary_aortic_valve_hospitalization
+859,[26HIRAMDV] Secondary_Atrial_fibrillation,859,26HIRAMDV_Secondary_Atrial_fibrillation
+860,[26HIRAMDV] Secondary_inpatient_stroke,860,26HIRAMDV_Secondary_inpatient_stroke
+861,[26HIRAMDV] Secondary_Myocardial_infarction,861,26HIRAMDV_Secondary_Myocardial_infarction
+862,[26HIRAMDV] Secondary_New_PPI,862,26HIRAMDV_Secondary_New_PPI
+863,[26HIRAMDV] Secondary_Heart_failure_inpatient,863,26HIRAMDV_Secondary_Heart_failure_inpatient
+816,[26HIRAMDV] TAVR_less80,816,26HIRAMDV_TAVR_less80
+818,[26HIRAMDV] SAVR_less80,818,26HIRAMDV_SAVR_less80
+784,[26HIRAMDV] TAVR (Medtronic),784,26HIRAMDV_TAVR_Medtronic
+793,[26HIRAMDV] TAVR (Edwards),793,26HIRAMDV_TAVR_Edwards
+820,[26HIRAMDV] TAVR (Medtronic)_less80,820,26HIRAMDV_TAVR_Medtronic_less80
+821,[26HIRAMDV] TAVR (Edwards)_less80,821,26HIRAMDV_TAVR_Edwards_less80
+792,[26HIRAMDV] SAVR (Sutureless AVR),792,26HIRAMDV_SAVR_Sutureless_AVR
+817,[26HIRAMDV] SAVR (Sutureless AVR)_less80,817,26HIRAMDV_SAVR_Sutureless_AVR_less80

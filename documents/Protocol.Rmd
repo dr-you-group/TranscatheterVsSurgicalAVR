@@ -1,0 +1,724 @@
+---
+title: "| RESEARCH PROTOCOL\n| \n| Long-term Safety and Effectiveness of Transcatheter versus Surgical Aortic Valve Replacement \n"
+fontsize: 12pt
+geometry: margin=1in
+output:
+  bookdown::html_document2:
+    df_print: paged
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+    number_sections: yes
+    number_tables: yes
+    css: style.css
+  pdf_document:
+    toc: true
+    toc_depth: '2'
+  html_document:
+    toc: true
+    toc_depth: '2'
+    df_print: paged
+  bookdown::pdf_document2:
+    keep_tex: yes
+    latex_engine: xelatex
+    md_extensions: +raw_attribute
+    number_sections: yes
+    includes:
+      before_body: title.tex
+  word_document:
+    reference_docx: ohdsi-protocol-style.docx
+header-includes:
+- \usepackage[numbers,sort&compress]{natbib}
+- \usepackage{booktabs}
+- \usepackage{longtable}
+- \usepackage{array}
+- \usepackage{multirow}
+- \usepackage{wrapfig}
+- \usepackage{float}
+- \usepackage{colortbl}
+- \usepackage{pdflscape}
+- \usepackage{tabu}
+- \usepackage{threeparttable}
+- \usepackage{threeparttablex}
+- \usepackage[normalem]{ulem}
+- \usepackage{makecell}
+- \usepackage{caption}
+- \usepackage{rotating}
+- \usepackage{multirow}
+- \usepackage{mwe,tikz}
+- \usepackage[percent]{overpic}
+- \usepackage{enumitem}
+- \usepackage{hyperref}
+- \newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+- \newcommand{\footerDate}{`r params$date`}
+- \input{header.tex}
+longtable: yes
+mainfont: Arial
+bibliography: Protocol.bib
+params:
+  date: '3-August-2026'
+  version: 0.0.2
+subtitle: 'Version: `r params$version`'
+link-citations: yes
+csl: bmj.csl
+---
+```{r setup, include=FALSE}
+library()
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE)
+library(kableExtra)
+library(dplyr)
+options(knitr.kable.NA = "")
+options(kableExtra.latex.load_packages = FALSE)
+
+
+latex_table_font_size <- 8
+```
+
+
+# List of Abbreviations
+
+```{r abbreviations, echo=FALSE}
+abbreviations <- readr::read_delim(col_names = FALSE, delim = ";", trim_ws = TRUE, show_col_types = FALSE, file = "
+  AS; Aortic stenosis
+  AVR; Aortic valve replacement
+  BE; Balloon-expandable valve
+  CDM; Common data model
+  CI; Confidence interval
+  CCI; Charlson Comorbidity Index
+  EHR; Electronic health record
+  HR; Hazard ratio
+  HIRA; Health Insurance Review and Assessment Service
+  IRB; Institutional review board
+  KM; Kaplan-Meier
+  LASSO; Least absolute shrinkage and selection operator
+  OHDSI; Observational Health Data Sciences and Informatics
+  OMOP; Observational Medical Outcomes Partnership
+  PPI; Permanent pacemaker insertion
+  PS; Propensity score
+  RCT; Randomized controlled trial
+  SAVR; Surgical aortic valve replacement
+  SE; Self-expanding valve
+  SMD; Standardized mean difference
+  STS; Society of Thoracic Surgeons
+  TAVR; Transcatheter aortic valve replacement
+  TCO; Target-comparator-outcome
+")
+
+tab <- kable(abbreviations, col.names = NULL, linesep = "", booktabs = TRUE)
+
+if (knitr::is_latex_output()) {
+  tab <- tab %>% kable_styling(latex_options = c("striped", "hold_position"), font_size = latex_table_font_size)
+} else if (knitr::is_html_output()) {
+  tab <- tab %>% kable_styling(bootstrap_options = "striped")
+}
+tab
+```
+
+\clearpage
+
+# Responsible Parties
+
+## Investigators
+
+```{r parties, echo=FALSE}
+parties <- readr::read_delim(col_names = TRUE, delim = ";", trim_ws = TRUE, show_col_types = FALSE,  file = "
+  Investigator; Institution/Affiliation
+  Yiju Park; Department of Biomedical Systems Informatics, Yonsei University College of Medicine, Seoul, Korea
+  Seung-Jun Lee; Division of Cardiology, Severance Cardiovascular Hospital, Yonsei University College of Medicine, Seoul
+  Seng Chan You*; Department of Biomedical Systems Informatics, Yonsei University College of Medicine, Seoul, Korea
+")
+
+tab <- kable(parties, booktabs = TRUE, linesep = "") %>%
+  column_spec(1, width = "10em") %>%
+  column_spec(2, width = "35em") %>%
+  footnote(general = "* Principal Investigator", general_title = "")
+
+if (knitr::is_latex_output()) {
+  tab <- tab %>% kable_styling(latex_options = c("striped", "hold_position"),
+                        font_size = latex_table_font_size)
+} else if (knitr::is_html_output()) {
+  tab <- tab %>% kable_styling(bootstrap_options = "striped")
+}
+tab
+```
+
+## Disclosures
+
+This study is undertaken within Observational Health Data Sciences and Informatics (OHDSI), an open collaboration.
+
+\clearpage
+
+# Abstract
+
+**Background and Significance**: Aortic stenosis is the most prevalent valvular heart disease in older adults, and transcatheter aortic valve replacement (TAVR) has rapidly expanded from high-risk to low-risk surgical patients over the past decade. While randomized controlled trials (RCTs) have demonstrated non-inferiority of TAVR compared with surgical aortic valve replacement (SAVR) across surgical risk categories, these trials have limited follow-up periods and narrow inclusion criteria. Long-term real-world comparative effectiveness data across a broad patient population remain limited.
+
+**Study Aims**: This study aims to compare the long-term (up to 7-year) safety and effectiveness of TAVR versus SAVR using large-scale observational data standardized to the OMOP Common Data Model (CDM). Additionally, the study evaluates outcomes stratified by age (<80 years) and by transcatheter valve device type (balloon-expandable versus self-expanding).
+
+**Study Description**:
+
+* **Population**: Adult patients with a new procedure of TAVR or SAVR recorded in participating observational healthcare databases, with at least 365 days of continuous prior observation and no prior aortic valve replacement.
+
+* **Comparators**: TAVR (target) versus SAVR (comparator). Sub-analyses include age-stratified comparisons (<80 years), device-specific comparisons (Medtronic [self-expanding] TAVR versus SAVR; Edwards [balloon-expandable] TAVR versus SAVR), and a head-to-head device comparison (Medtronic TAVR versus Edwards TAVR).
+
+* **Outcomes**: Primary outcomes are (1) composite of all-cause mortality or disabling stroke, and (2) reintervention. Secondary outcomes include all-cause mortality, disabling stroke, all stroke, myocardial infarction, new permanent pacemaker insertion, atrial fibrillation, aortic valve hospitalization, and a composite of all-cause mortality, disabling stroke, and aortic valve hospitalization.
+
+* **Design**: New-user active comparator cohort study with large-scale propensity score matching using the OHDSI CohortMethod package. Analyses are conducted across a network of observational healthcare databases standardized to OMOP CDM v5.4.
+
+* **Timeframe**: Six pre-specified follow-up windows are applied (5, 6, 7, 8, 9 years, and an intent-to-treat window with no fixed censoring), all bounded by a common study end date of December 31, 2025. The primary analysis uses a 7-year maximum follow-up. Four propensity score adjustment methods (1:1 matching, stratification, IPTW, unadjusted) are applied to each time window, yielding 24 analysis configurations per target-comparator-outcome.
+
+\clearpage
+
+# Amendments and Updates
+
+```{r amendments, echo=FALSE}
+amendments <- readr::read_delim(col_names = TRUE, delim = ";", trim_ws = TRUE,  show_col_types = FALSE,  file = "
+  Number; Date; Section of study protocol; Amendment or update; Reason
+  1; 2026-06-18; v0.01; ; Initial draft
+  2; 2026-08-03; v0.02; ; update
+")
+
+tab <- kable(amendments, booktabs = TRUE, linesep = "")
+
+if (knitr::is_latex_output()) {
+  tab <- tab %>% kable_styling(latex_options = c("striped", "hold_position"), font_size = latex_table_font_size)
+} else if (knitr::is_html_output()) {
+  tab <- tab %>% kable_styling(bootstrap_options = "striped")
+}
+tab
+```
+
+
+# Rationale and Background
+
+Aortic stenosis (AS) is the most common valvular heart disease in developed countries, affecting approximately 2–5% of adults over the age of 65 years and carrying a poor prognosis when left untreated.[@Lung2003] For decades, surgical aortic valve replacement (SAVR) was the only definitive treatment, with well-established long-term durability. However, a substantial proportion of patients with severe AS are at elevated surgical risk due to advanced age and comorbidities, making SAVR high-risk or prohibitive.
+
+Transcatheter aortic valve replacement (TAVR) was introduced as a less invasive alternative to SAVR, first performed in humans by Cribier et al. in 2002.[@Cribier2002] The landmark PARTNER trial in 2010–2011 demonstrated that TAVR was superior to medical therapy in inoperable patients and non-inferior to SAVR in high-surgical-risk patients, establishing TAVR as a therapeutic standard for these groups.[@Leon2010; @Smith2011] The CoreValve US Pivotal Trial (2014) further confirmed these findings with self-expanding transcatheter valves.[@Adams2014]
+
+Subsequent trials extended TAVR indications to intermediate-risk patients. The PARTNER 2 trial (2016) demonstrated non-inferiority of TAVR with the SAPIEN XT valve compared with SAVR in intermediate-risk patients.[@Leon2016] The SURTAVI trial (2017) confirmed similar findings using the CoreValve Evolut R self-expanding valve.[@Reardon2017] These results led to expanded regulatory approval and increased clinical adoption of TAVR across a broader patient population.
+
+The NOTION trial (2015) was among the first to evaluate TAVR in lower-risk patients, showing comparable clinical outcomes between TAVR and SAVR at 1 year in a predominantly low-risk Scandinavian cohort.[@Thyregod2015] More definitive evidence emerged from the PARTNER 3 trial (2019) and the Evolut Low Risk trial (2019), which demonstrated non-inferiority—and in some endpoints superiority—of TAVR over SAVR in low-risk patients at 1 and 2 years.[@Mack2019; @Popma2019] These pivotal results led to the approval of TAVR for low-surgical-risk patients in 2019, effectively removing surgical risk stratification as a prerequisite for TAVR.
+
+Despite robust short-term RCT evidence, important knowledge gaps remain. First, the durability of transcatheter bioprostheses over periods exceeding 5 years is not well established in low- to intermediate-risk patients who have longer life expectancy.[@Foroutan2016] Second, RCTs have narrow inclusion/exclusion criteria that limit generalizability to real-world clinical practice, including elderly patients, those with multiple comorbidities, and patients with complex anatomical features. Third, specific differences between valve device types—particularly balloon-expandable valves (BEV; Edwards SAPIEN family) and self-expanding valves (SEV; Medtronic CoreValve/Evolut family)—in long-term outcomes remain understudied in comparative effectiveness research. The SEV devices are associated with higher rates of new permanent pacemaker (PPI) implantation, while BEV devices may carry different risks for paravalvular leak and vascular complications.
+
+In younger patients (aged <80 years), the question of TAVR versus SAVR is particularly clinically significant, because these patients are expected to outlive the durability horizon of currently available transcatheter bioprostheses. Current guidelines recommend individualized decision-making in younger patients, yet evidence to inform such decisions is limited.[@Vahanian2021; @Otto2021]
+
+Large-scale real-world observational studies using standardized data can complement RCT evidence by providing population-level effectiveness estimates across diverse patient groups with longer follow-up. The OHDSI collaborative network, with its use of the OMOP CDM, enables federated multi-database analyses that maintain patient-level privacy while aggregating evidence across geographically and clinically diverse populations. Empirical calibration using negative control outcomes addresses residual systematic error inherent to observational designs.[@Schuemie2018-pnas; @Schuemie2018-zi]
+
+This study leverages the OHDSI Population-Level Estimation (PLE) framework to conduct a large-scale, multi-database comparative effectiveness study of TAVR versus SAVR with a focus on long-term outcomes up to 7 years, with pre-specified analyses across device types and age subgroups. The 7-year follow-up horizon is motivated by the recent 7-year results of the Evolut Low Risk Trial, which provided the longest available RCT-level evidence for TAVR durability in low-risk patients.[@Forrest2026]
+
+# Study Objectives
+
+## Primary Objectives
+
+1. To estimate the long-term (up to 7-year) risk of the composite endpoint of all-cause mortality or disabling stroke in patients undergoing TAVR compared with those undergoing SAVR.
+2. To estimate the long-term (up to 7-year) risk of reintervention (valve-related reintervention) in patients undergoing TAVR compared with those undergoing SAVR.
+
+## Secondary Objectives
+
+1. To estimate the long-term risk of all-cause mortality in patients undergoing TAVR compared with SAVR.
+2. To estimate the long-term risk of disabling stroke (inpatient stroke) in patients undergoing TAVR compared with SAVR.
+3. To estimate the long-term risk of all stroke (inpatient and outpatient) in patients undergoing TAVR compared with SAVR.
+4. To estimate the long-term risk of myocardial infarction (MI) in patients undergoing TAVR compared with SAVR.
+5. To estimate the long-term risk of new permanent pacemaker insertion (New PPI) in patients undergoing TAVR compared with SAVR.
+6. To estimate the long-term risk of new-onset atrial fibrillation (AF) in patients undergoing TAVR compared with SAVR.
+7. To estimate the long-term risk of aortic valve hospitalization in patients undergoing TAVR compared with SAVR.
+8. To estimate the long-term risk of the composite endpoint of all-cause mortality, disabling stroke, and aortic valve hospitalization in patients undergoing TAVR compared with SAVR.
+
+## Exploratory Objectives
+
+1. To evaluate the above outcomes in patients aged less than 80 years at the time of the procedure.
+2. To evaluate the above outcomes in patients receiving Medtronic (self-expanding) TAVR compared with SAVR.
+3. To evaluate the above outcomes in patients receiving Edwards (balloon-expandable) TAVR compared with SAVR.
+4. To compare outcomes between patients receiving Medtronic TAVR and those receiving Edwards TAVR (head-to-head device comparison).
+
+# Research Methods
+
+## Study Design
+
+This is a non-interventional, retrospective, new-user active comparator cohort study conducted across a federated network of observational healthcare databases standardized to the OMOP CDM version 5.4. The study is an open OHDSI network study, meaning any institution with OMOP CDM-compliant data is invited to participate. The study adheres to the OHDSI Population-Level Estimation (PLE) framework and uses the CohortMethod R package for propensity score-based analysis.[@Schuemie2020-fa]
+
+In the new-user design, only patients initiating TAVR or SAVR for the first time are eligible for inclusion, thereby avoiding prevalent-user bias.[@Suissa2008] The active comparator design (TAVR versus SAVR) reduces confounding by indication that would arise from comparison against an untreated group, as both groups share the indication of severe aortic stenosis requiring valve replacement.
+
+The index date is defined as the date of the first recorded TAVR or SAVR procedure. The time-at-risk begins on the day after the index date. To comprehensively characterize the temporal evolution of treatment effects and to maximize comparability with published RCT follow-up durations, six pre-specified follow-up windows are applied: 5, 6, 7, 8, and 9 years, as well as an intent-to-treat (ITT) window with no fixed censoring. The primary analysis uses a 7-year (2,555-day) maximum follow-up, aligning with the Evolut Low Risk Trial 7-year results.[@Forrest2026] All analyses share a common study end date of December 31, 2025, which serves as an additional censoring boundary regardless of the specified risk window.
+
+## Data Sources
+
+### Network Study Design and Federated Analysis
+
+This study is conducted as an OHDSI network study using a federated, distributed analysis approach. Each participating site executes an identical, pre-specified R study package locally on patient-level data that never leave the institution's secure environment. Only aggregate summary statistics (e.g., cohort counts, covariate summaries, effect estimates, calibration diagnostics) are shared with the study coordinator. No patient-level data are transmitted outside of participating institutions at any time.
+
+The study package is made publicly available through the OHDSI GitHub repository (https://github.com/ohdsi-studies), enabling transparent peer review of all analytical code prior to execution. Any institution with data mapped to the OMOP CDM version 5.4 is eligible to participate. Participation is voluntary and governed by each site's local data governance and regulatory requirements.
+
+### Anchor Data Sources
+
+The analyses are initially anchored at the following two Korean databases, which represent the primary sites for which cohort definitions and outcome concept sets have been developed and validated:
+
+```{r datasources, echo=FALSE}
+datasources <- readr::read_delim(col_names = TRUE, delim = ";", trim_ws = TRUE, show_col_types = FALSE, file = "
+  Data Source; Country; Data Type; Population; Time Period
+  Health Insurance Review and Assessment Service (HIRA); South Korea; National administrative claims; Entire insured population (~50 million); 2002–present
+  Severance Cardiovascular Hospital (SEV); South Korea; Hospital EHR; Tertiary Hospital (Yonsei University Medical Center); 2006–present
+")
+
+tab <- kable(datasources, booktabs = TRUE, linesep = "") %>%
+  column_spec(1, width = "10em") %>%
+  column_spec(2, width = "5em") %>%
+  column_spec(3, width = "9em") %>%
+  column_spec(4, width = "10em") %>%
+  column_spec(5, width = "8em")
+
+if (knitr::is_latex_output()) {
+  tab %>% kable_styling(latex_options = c("striped", "hold_position", "scale_down"),
+                        font_size = latex_table_font_size)
+} else {
+  tab %>% kable_styling(bootstrap_options = "striped")
+}
+```
+
+**Health Insurance Review and Assessment Service (HIRA)**: HIRA is the Korean national health insurance claims database covering approximately 97% of the Korean population. It contains longitudinal data on diagnoses (coded using the Korean Classification of Diseases, a modified version of ICD-10), procedures, prescriptions, and healthcare resource utilization for all insured individuals. The HIRA database has been mapped to the OMOP CDM and has been used in multiple OHDSI network studies.
+
+**Severance Cardiovascular Hospital (SEV)**: The Severance Cardiovascular Hospital at Yonsei University Medical Center is a tertiary hospital in Seoul, Korea with a dedicated structural heart disease program. Electronic health records include inpatient and outpatient clinical data, procedural records, laboratory results, and longitudinal follow-up. The EHR data have been mapped to the OMOP CDM v5.4.
+
+### OHDSI Network Participation
+
+In addition to the anchor sites, this study invites participation from any OHDSI network partner institution globally. Expanding to a broader network of databases is intended to increase sample size, enhance generalizability beyond the Korean healthcare context, and enable assessment of result consistency across diverse healthcare systems, payer structures, and geographic regions.
+
+Institutions interested in participating should contact the study coordinator (Seng Chan You; e-mail: [to be provided]) or express interest through the OHDSI community forums (https://forums.ohdsi.org). The study is registered on the OHDSI open science initiative, and participation requires no formal agreement beyond compliance with each site's local data use and governance policies.
+
+### Requirements for Participating Sites
+
+To participate in this network study, each site must meet the following requirements:
+
+```{r participation-requirements, echo=FALSE}
+requirements <- readr::read_delim(col_names = TRUE, delim = ";", trim_ws = TRUE, show_col_types = FALSE, file = "
+  Requirement; Details
+  OMOP CDM version; Version 5.4
+  Vocabulary version; OHDSI standard vocabularies (Athena); SNOMED CT required for procedure and device concepts
+  Minimum data period; At least one year of continuous observation data prior to first observed TAVR or SAVR procedure in the database
+  Concept coverage; SNOMED procedure and device concepts for aortic valve replacement must be present in the data
+  Minimum cohort size; At least 50 patients in either the TAVR or SAVR cohort (sites with smaller populations are encouraged to discuss with the study coordinator)
+  Technical infrastructure; R (version 4.1 or higher) with the renv package for dependency management; database connection via DatabaseConnector
+  Data governance; Local IRB waiver or approval and data use authorization as required by institutional policy
+")
+
+tab <- kable(requirements, booktabs = TRUE, linesep = "") %>%
+  column_spec(1, width = "10em") %>%
+  column_spec(2, width = "30em")
+
+if (knitr::is_latex_output()) {
+  tab %>% kable_styling(latex_options = c("striped", "hold_position", "scale_down"),
+                        font_size = latex_table_font_size)
+} else {
+  tab %>% kable_styling(bootstrap_options = "striped")
+}
+```
+
+### Result Sharing and Aggregation
+
+Each participating site executes the study package locally and exports a set of pre-defined results files containing only aggregate statistics. These files include:
+
+- **Cohort attrition counts**: The number of patients at each inclusion step.
+- **Baseline covariate summaries**: Standardized mean differences and mean values for all covariates before and after PS adjustment.
+- **Propensity score diagnostics**: Preference score distributions and covariate balance plots.
+- **Outcome counts and person-time**: Event counts and person-years at risk for each outcome and follow-up window.
+- **Effect estimates**: Hazard ratios and 95% confidence intervals for all analysis configurations.
+- **Negative and positive control estimates**: For empirical calibration and method evaluation.
+
+No cell counts smaller than 5 are exported; sites are encouraged to follow their institutional policies on minimum reportable cell size. Results are uploaded to the study coordinator using the OhdsiSharing R package via a secure SFTP protocol, or submitted through an alternative agreed-upon secure file transfer method.
+
+Meta-analytic pooling of results across sites will be performed using a random-effects model to account for heterogeneity across databases. Between-site heterogeneity will be reported alongside pooled estimates.
+
+## Study Population
+
+### Target and Comparator Cohort Definitions
+
+**Target cohort (TAVR)**: Patients with a first recorded occurrence of a transcatheter aortic valve replacement procedure, identified using SNOMED procedure concepts and device concepts specific to transcatheter bioprosthetic aortic valve implantation. The index date is defined as the date of the first qualifying procedure record. Patients are required to have at least 365 days of continuous prior observation in the database before the index date. Patients with a prior record of any aortic valve replacement (TAVR or SAVR) before the index date are excluded. The cohort end date corresponds to the end of continuous observation.
+
+**Comparator cohort (SAVR)**: Patients with a first recorded occurrence of a surgical aortic valve replacement procedure, identified using SNOMED procedure concepts for surgical replacement of the aortic valve. The index date, washout period, prior observation requirement, and exclusion criteria are identical to those applied to the target cohort.
+
+### Subgroup Cohort Definitions
+
+**Age <80 subgroup**: Target and comparator cohorts restricted to patients aged less than 80 years at the index date. This subgroup is of particular clinical interest, as younger patients have longer life expectancy relative to expected prosthetic valve durability, and are more commonly considered for SAVR in contemporary guidelines.
+
+**Device-specific TAVR cohorts**: TAVR patients are further classified by valve device type:
+
+- *Medtronic TAVR* (self-expanding valve, SEV): Patients receiving a CoreValve, Evolut R, or Evolut PRO transcatheter valve, identified by Medtronic-specific device concept codes.
+- *Edwards TAVR* (balloon-expandable valve, BEV): Patients receiving a SAPIEN XT, SAPIEN 3, or SAPIEN 3 Ultra transcatheter valve, identified by Edwards-specific device concept codes.
+
+### Target-Comparator Pairs
+
+```{r tco-table, echo=FALSE}
+tcos <- readr::read_delim(col_names = TRUE, delim = ";", trim_ws = TRUE, show_col_types = FALSE, file = "
+  #; Target; Comparator; Analysis Type
+  1 (Primary); TAVR (age <80); SAVR (age <80); Primary comparison in younger patients
+  2; TAVR (all ages); SAVR (all ages); Overall comparison across all ages
+  3; Medtronic TAVR (age <80); SAVR (age <80); Device-specific comparison: SEV vs. SAVR
+  4; Edwards TAVR (age <80); SAVR (age <80); Device-specific comparison: BEV vs. SAVR
+  5; Medtronic TAVR (all ages); Edwards TAVR (all ages); Head-to-head device comparison: SEV vs. BEV
+")
+
+tab <- kable(tcos, booktabs = TRUE, linesep = "") %>%
+  column_spec(1, width = "5em") %>%
+  column_spec(2, width = "10em") %>%
+  column_spec(3, width = "10em") %>%
+  column_spec(4, width = "18em")
+
+if (knitr::is_latex_output()) {
+  tab %>% kable_styling(latex_options = c("striped", "hold_position"),
+                        font_size = latex_table_font_size)
+} else {
+  tab %>% kable_styling(bootstrap_options = "striped")
+}
+```
+
+## Exposure Comparators
+
+**Target exposure – Transcatheter Aortic Valve Replacement (TAVR)**: TAVR is a catheter-based procedure in which a bioprosthetic valve is delivered and deployed within the native aortic valve without open-heart surgery, most commonly via a transfemoral approach. In this study, TAVR includes all commercially available transcatheter valve systems regardless of access route. Device-specific sub-analyses distinguish between self-expanding valves (Medtronic CoreValve/Evolut family) and balloon-expandable valves (Edwards SAPIEN family).
+
+**Comparator exposure – Surgical Aortic Valve Replacement (SAVR)**: SAVR involves open-heart surgery under cardiopulmonary bypass for excision of the diseased native aortic valve and implantation of a prosthetic valve (bioprosthetic or mechanical). In this study, SAVR includes all surgical aortic valve replacements regardless of prosthesis type.
+
+## Outcomes {#outcomes}
+
+All outcomes are defined as the first occurrence of the event after the index date (day 1 or later). Outcome cohort definitions are constructed in ATLAS and standardized to OMOP CDM concept sets.
+
+### Primary Outcomes
+
+1. **Composite of all-cause mortality or disabling stroke**: The first occurrence of either all-cause mortality or disabling stroke (inpatient stroke) after the index date. All-cause mortality is identified from death records in the OMOP CDM. Disabling stroke is operationalized as a stroke diagnosis recorded in the context of an inpatient hospitalization.
+
+2. **Reintervention**: Any aortic valve-related reintervention procedure after the index date, including repeat TAVR (valve-in-valve), SAVR after TAVR, balloon aortic valvuloplasty, or surgical revision for valve-related complications.
+
+### Secondary Outcomes
+
+```{r outcomes-table, echo=FALSE}
+outcomes <- readr::read_delim(col_names = TRUE, delim = ";", trim_ws = TRUE, show_col_types = FALSE, file = "
+  Outcome; Definition; Endpoint Type
+  All-cause mortality; Death from any cause recorded in the OMOP CDM death domain; Time-to-event
+  Disabling stroke (inpatient stroke); Stroke diagnosis (ischemic or hemorrhagic) recorded as a primary or secondary diagnosis during an inpatient hospitalization; Time-to-event
+  All stroke; Any stroke diagnosis (ischemic or hemorrhagic) recorded in inpatient or outpatient settings; Time-to-event
+  Myocardial infarction (MI); Myocardial infarction diagnosis recorded as a primary or secondary diagnosis during an inpatient hospitalization; Time-to-event
+  New permanent pacemaker insertion (New PPI); First occurrence of a permanent pacemaker implantation procedure after the index date in patients without a prior pacemaker; Time-to-event
+  New-onset atrial fibrillation (AF); First diagnosis of atrial fibrillation or atrial flutter after the index date in patients without a prior AF diagnosis; Time-to-event
+  Aortic valve hospitalization; Inpatient hospitalization with a primary diagnosis related to structural aortic valve disease or valve failure; Time-to-event
+  Composite: mortality + disabling stroke + aortic valve hospitalization; First occurrence of all-cause mortality or disabling stroke (inpatient) or aortic valve hospitalization; Time-to-event
+")
+
+tab <- kable(outcomes, booktabs = TRUE, linesep = "") %>%
+  column_spec(1, width = "10em") %>%
+  column_spec(2, width = "25em") %>%
+  column_spec(3, width = "7em")
+
+if (knitr::is_latex_output()) {
+  tab %>% kable_styling(latex_options = c("striped", "hold_position", "scale_down"),
+                        font_size = latex_table_font_size)
+} else {
+  tab %>% kable_styling(bootstrap_options = "striped")
+}
+```
+
+### Sensitivity Analysis Outcomes (Severance Hospital-specific Definitions)
+
+For analyses incorporating the Severance Hospital database, database-specific outcome cohort definitions are used for reintervention, new PPI, and the composite endpoint of all-cause mortality, disabling stroke, and aortic valve hospitalization to account for local coding practices and data availability. These sensitivity analyses are conducted in parallel with the primary outcome analyses.
+
+## Analysis
+
+### Overview of Analytical Design
+
+This study employs a pre-specified matrix of analyses crossing four propensity score (PS) adjustment methods with six follow-up time windows, resulting in 24 distinct analysis configurations per target-comparator-outcome combination. The primary analysis is 7-year follow-up with 1:1 PS matching (Analysis ID 19). All remaining configurations serve as sensitivity analyses to evaluate the robustness of findings to analytical choices. All analyses share an identical PS model specification and covariates; they differ only in the PS adjustment method and the maximum follow-up horizon.
+
+```{r analysis-matrix, echo=FALSE}
+analysis_matrix <- readr::read_delim(col_names = TRUE, delim = ";", trim_ws = TRUE, show_col_types = FALSE, file = "
+  Analysis ID; Description; Risk Window End (days); PS Method
+  1; Five-year outcome, one-to-one matching; 1825 (5 years); 1:1 PS matching
+  2; Five-year outcome, stratification; 1825 (5 years); PS stratification (5 strata)
+  4; Five-year outcome, IPTW; 1825 (5 years); IPTW
+  5; Five-year outcome, without matching; 1825 (5 years); Unadjusted (no PS)
+  10; Six-year outcome, one-to-one matching; 2190 (6 years); 1:1 PS matching
+  11; Six-year outcome, stratification; 2190 (6 years); PS stratification (5 strata)
+  13; Six-year outcome, IPTW; 2190 (6 years); IPTW
+  14; Six-year outcome, without matching; 2190 (6 years); Unadjusted (no PS)
+  **19**; **Seven-year outcome, one-to-one matching (PRIMARY)**; **2555 (7 years)**; **1:1 PS matching**
+  20; Seven-year outcome, stratification; 2555 (7 years); PS stratification (5 strata)
+  22; Seven-year outcome, IPTW; 2555 (7 years); IPTW
+  23; Seven-year outcome, without matching; 2555 (7 years); Unadjusted (no PS)
+  28; Eight-year outcome, one-to-one matching; 2920 (8 years); 1:1 PS matching
+  29; Eight-year outcome, stratification; 2920 (8 years); PS stratification (5 strata)
+  31; Eight-year outcome, IPTW; 2920 (8 years); IPTW
+  32; Eight-year outcome, without matching; 2920 (8 years); Unadjusted (no PS)
+  37; Nine-year outcome, one-to-one matching; 3285 (9 years); 1:1 PS matching
+  38; Nine-year outcome, stratification; 3285 (9 years); PS stratification (5 strata)
+  40; Nine-year outcome, IPTW; 3285 (9 years); IPTW
+  41; Nine-year outcome, without matching; 3285 (9 years); Unadjusted (no PS)
+  46; ITT, one-to-one matching; Until end of observation; 1:1 PS matching
+  47; ITT, stratification; Until end of observation; PS stratification (5 strata)
+  49; ITT, IPTW; Until end of observation; IPTW
+  50; ITT, without matching; Until end of observation; Unadjusted (no PS)
+")
+
+tab <- kable(analysis_matrix, booktabs = TRUE, linesep = "") %>%
+  column_spec(1, width = "4em") %>%
+  column_spec(2, width = "15em") %>%
+  column_spec(3, width = "8em") %>%
+  column_spec(4, width = "10em") %>%
+  row_spec(9, bold = TRUE)
+
+if (knitr::is_latex_output()) {
+  tab %>% kable_styling(latex_options = c("striped", "hold_position", "scale_down"),
+                        font_size = latex_table_font_size)
+} else {
+  tab %>% kable_styling(bootstrap_options = "striped")
+}
+```
+
+All analyses share a common study end date of December 31, 2025. Actual patient follow-up is thus bounded by the minimum of the risk window end, the study end date, or the patient's last available observation period. The ITT analyses (IDs 46–50) impose no artificial censoring at a fixed number of days; patients are followed until end of their observation period or the study end date.
+
+### Propensity Score Estimation
+
+A propensity score (PS) is estimated for each target-comparator pair using a large-scale regularized logistic regression model implemented via the Cyclops R package with a Laplace (L1) prior and cross-validation for hyperparameter selection.[@Suchard2013] The PS model predicts the probability of receiving TAVR (versus SAVR) given a large set of pre-index covariates.
+
+The following covariate types are included in the PS model:
+
+- **Demographics**: age (in 5-year age groups), sex, index calendar year, index calendar month
+- **Condition eras**: all recorded diagnoses in the 365-day (long-term) and 180-day (medium-term) windows prior to the index date
+- **Drug eras**: all drug exposures at the ingredient and drug class levels in the 365-day (long-term) and 180-day (medium-term) windows prior to the index date
+- **Procedure occurrences**: all recorded procedures in the 365-day and 180-day windows prior to the index date
+- **Device exposures**: all recorded device exposures in the 365-day window prior to the index date
+- **Measurement values**: all recorded measurements in the 365-day window prior to the index date
+- **Observation records**: all observations recorded in the 365-day and 180-day windows prior to the index date
+- **Visit context**: inpatient, outpatient, and emergency visit counts in the 365-day window prior to the index date
+- **Clinical indices**: Charlson Comorbidity Index (CCI), CHADS~2~ score, and Diabetes Complication Severity Index (DCSI) computed from the prior observation period
+
+The following concept IDs are excluded from the PS model as they are direct proxies of the treatment choice (aortic valve procedures and device concepts): SNOMED concepts related to aortic valve replacement, transcatheter valve devices, and bioprosthetic aortic valve materials (n=15 excluded concept IDs per target-comparator pair).
+
+### Propensity Score Adjustment Methods
+
+Four PS adjustment methods are applied in parallel to evaluate the robustness of findings:
+
+**1. One-to-one (1:1) PS matching** (primary): Patients are matched 1:1 using nearest-neighbor matching on the logit of the PS without replacement, with a caliper of 0.2 standard deviations of the logit PS.[@Austin2011] The matching is performed within each target-comparator-database stratum. A stratified Cox proportional hazards model (unstratified; treating matched pairs as independent) is used for the outcome analysis.
+
+**2. PS stratification**: Patients are stratified into 5 equally sized PS strata based on the quintiles of the PS distribution. A stratified Cox proportional hazards model, accounting for the PS strata, is used for the outcome analysis.
+
+**3. Inverse probability of treatment weighting (IPTW)**: Patients are weighted by the inverse of their estimated PS (stabilized weights). The outcome model is a Cox proportional hazards model applied to the IPTW-weighted cohort.
+
+**4. Unadjusted (no PS adjustment)**: No PS adjustment is applied. The outcome model is an unadjusted Cox proportional hazards model. This analysis provides a reference estimate to quantify the degree of confounding addressed by the PS-based approaches.
+
+### Follow-up Time Windows
+
+Six follow-up horizons are pre-specified to characterize the temporal evolution of treatment effects and to enable comparison with published RCT follow-up durations:
+
+- **5 years (1,825 days)**: Corresponds to the follow-up horizon of the PARTNER 3 5-year results.
+- **6 years (2,190 days)**: Intermediate window capturing emerging differences in valve durability.
+- **7 years (2,555 days)** *(primary)*: Aligns with the 7-year follow-up of the Evolut Low Risk Trial (JACC, 2026).[@Forrest2026]
+- **8 years (2,920 days)**: Sensitivity window for patients with the longest available follow-up.
+- **9 years (3,285 days)**: Sensitivity window for the earliest TAVR patients in the database.
+- **ITT (intent-to-treat, no fixed censoring)**: Patients followed until end of observation period or December 31, 2025, without truncation at a fixed number of days, capturing all available follow-up time.
+
+### Covariate Balance Assessment
+
+Covariate balance is assessed before and after PS adjustment using the standardized mean difference (SMD) for all pre-specified covariates. An SMD of less than 0.1 is considered indicative of adequate balance. The distribution of PS in the target and comparator groups before and after matching is visualized using preference score plots.
+
+### Outcome Analysis
+
+For each analysis configuration, a Cox proportional hazards model is fitted to estimate the hazard ratio (HR) with 95% confidence interval (CI). The model specification (stratified or unstratified) varies by PS adjustment method as described above. Kaplan-Meier (KM) survival curves are generated for the primary analysis (7-year, 1:1 matching) to visualize cumulative incidence over the follow-up period. The time-at-risk begins on the day after the index date (day 1) to avoid immortal time bias.
+
+### Empirical Calibration
+
+To assess and adjust for residual systematic error (unmeasured confounding, measurement error, and other sources of bias), a set of negative control outcomes is included in each analysis.[@Schuemie2018-pnas] Negative controls are conditions with no known causal relationship to TAVR or SAVR (e.g., dental caries, cataract, allergic rhinitis). Approximately 65 negative control outcomes are included per target-comparator pair (see Appendix \@ref(negative-control-concepts)). The distribution of HR estimates for negative controls is used to characterize the residual bias and estimate empirically calibrated p-values and confidence intervals.
+
+### Positive Control Synthesis
+
+Synthetic positive controls are generated by outcome model injection to evaluate the operating characteristics of the study design.[@Schuemie2018-zi] Positive controls with true effect sizes of 1.5, 2.0, and 4.0 are synthesized using a survival model. A minimum of 50 outcomes per positive control is required for model fitting, and a minimum of 25 outcomes is required for injection. Up to 250,000 subjects are used in the positive control synthesis model.
+
+### Multiple Comparisons
+
+This study involves multiple target-comparator-outcome combinations crossed with 24 analysis configurations. Results are presented for all pre-specified analysis configurations with both uncalibrated and empirically calibrated effect estimates. No formal Bonferroni-type correction for multiple comparisons is applied; the primary inference is drawn from the 7-year, 1:1 matching analysis, and the full set of sensitivity results is made available for interpretation by the scientific community.
+
+# Sample Size and Study Power {#sample-size}
+
+This is a large-scale observational network study, and no formal a priori power calculation is conducted. The study leverages the large populations available in the participating databases (HIRA covers the entire Korean insured population of approximately 50 million) and multi-database aggregation to provide sufficient statistical power for estimating treatment effects. Given that TAVR procedures have been performed in South Korea since the early 2010s and SAVR is a high-volume procedure, the expected sample size in the HIRA database alone is expected to provide tens of thousands of TAVR and SAVR patients over the study period.
+
+For the primary comparison (TAVR <80 vs. SAVR <80), the minimum detectable relative risk assuming 7-year event rates of 15–25% for the composite primary endpoint is expected to be in the range of 0.85–1.15, providing adequate power to detect clinically meaningful differences.
+
+The actual sample sizes and event counts in each database will be reported in the results, along with minimum detectable relative risk estimates.
+
+# Strengths and Limitations {#strengths-limitations}
+
+## Strengths
+
+- **Large-scale real-world evidence**: The inclusion of a national health insurance database (HIRA) provides access to the entire insured Korean population, yielding a very large sample size that substantially increases statistical power compared with single-center or registry-based studies.
+- **Multi-database and multi-national approach**: Anchored in two complementary Korean databases (national claims and hospital EHR), the study is open to any OHDSI network site worldwide. Participation of international sites with different healthcare systems, payer structures, and TAVR adoption timelines will strengthen external validity, enable cross-national comparison, and increase the total sample size—particularly for low-frequency outcomes and device-specific subgroup analyses.
+- **New-user active comparator design**: The new-user design avoids prevalent-user bias, and the active comparator design (SAVR as comparator rather than untreated) reduces confounding by indication and severity.
+- **Large-scale propensity score adjustment**: The large-scale PS model incorporating hundreds to thousands of covariates enables adjustment for a wide range of potential confounders, including comorbidities, co-medications, and prior healthcare utilization patterns.
+- **Long and multiple follow-up windows**: Follow-up windows of 5, 6, 7, 8, and 9 years, plus an ITT window, characterize the temporal trajectory of treatment effects and allow direct comparison with each major RCT follow-up duration. The 7-year primary window aligns with the recently reported Evolut Low Risk Trial 7-year outcomes.[@Forrest2026]
+- **Multiple PS adjustment methods**: Running all four PS adjustment approaches (1:1 matching, stratification, IPTW, unadjusted) in parallel allows for evaluation of method-specific sensitivity and strengthens causal inference when results are consistent across approaches.
+- **Empirical calibration**: The use of negative control outcomes to empirically calibrate effect estimates provides a principled approach to detecting and correcting for residual systematic error, a key methodological strength of the OHDSI framework.
+- **Device-specific analysis**: Pre-specified sub-analyses comparing SEV (Medtronic) and BEV (Edwards) devices against SAVR and each other provide actionable comparative data for device selection.
+- **OMOP CDM standardization**: The use of OMOP CDM v5.4 ensures reproducibility, facilitates external validation, and supports future replication across additional OHDSI sites.
+
+## Limitations
+
+- **Residual confounding**: Despite large-scale PS matching, unmeasured confounders—particularly surgical risk scores (STS score, EuroSCORE II), echocardiographic parameters (aortic valve area, mean gradient, LVEF), anatomical factors (aortic root geometry, vascular access), and physician judgment—cannot be adjusted for in administrative claims data. Patients selected for TAVR versus SAVR may differ in ways not fully captured by the available covariates.
+- **Indication bias and temporal trends**: TAVR was initially restricted to high-risk or inoperable patients and progressively expanded to lower-risk patients over the study period. This secular trend may introduce residual confounding by indication that is difficult to fully eliminate with PS methods, particularly in analyses spanning extended calendar time periods.
+- **Coding variability**: Diagnosis and procedure coding practices may vary across data sources, time periods, and healthcare settings, potentially affecting outcome ascertainment and cohort identification.
+- **Incomplete device-specific data**: Device-specific information (manufacturer, model, size) may not be consistently captured in administrative claims data, potentially limiting the accuracy of device-stratified analyses in the HIRA database.
+- **Generalizability within Korea**: Findings from the Korean healthcare system may reflect Korean-specific patient demographics, clinical practice patterns, device availability, and insurance coverage policies that differ from other countries.
+- **Heterogeneity across network sites**: If additional OHDSI network sites contribute data, systematic heterogeneity in coding practices, patient case mix, healthcare delivery systems, and TAVR adoption timelines across countries may limit the interpretability of pooled estimates. Between-site heterogeneity will be formally assessed and reported.
+- **Concept coverage at external sites**: Participating sites outside Korea may use different local coding systems (e.g., ICD-10-PCS, OPCS-4) that may not map uniformly to the SNOMED procedure and device concepts used to define TAVR and SAVR cohorts. Sites are encouraged to validate concept coverage prior to execution.
+- **Mortality ascertainment**: In claims databases, all-cause mortality may be incompletely captured if patients die outside of a healthcare setting or if death records are not linked to the claims database.
+- **Competing risks**: The analysis uses traditional time-to-event methods (Cox PH and KM) without formal competing risk adjustment. In a population with high background mortality risk (older adults undergoing valve replacement), competing risks may influence the interpretation of cause-specific event rates.
+
+# Protection of Human Subjects
+
+The study uses only de-identified or pseudonymized electronic health record and claims data. Patient-level data are never shared across institutions. Each participating site executes the study package locally within its own secure data environment, and only pre-specified aggregate statistics are transmitted to the study coordinator. Confidentiality of patient records will be maintained at all times. All study reports will contain aggregate data only and will not identify individual patients or physicians.
+
+Each participating institution is responsible for obtaining any required local ethics committee or institutional review board (IRB) approval, data use authorization, or waiver of informed consent in accordance with applicable national and institutional regulations. Because the study uses retrospective observational data without direct patient contact or intervention, many participating sites may be eligible for an expedited review or waiver of informed consent. Sites are asked to document and provide evidence of their local regulatory approval to the study coordinator prior to result submission.
+
+# Management and Reporting of Adverse Events and Adverse Reactions
+
+This is a non-interventional, retrospective observational study using existing electronic health records. No investigational products are administered and no direct patient interventions are performed. Accordingly, formal adverse event monitoring and reporting procedures applicable to interventional studies are not required. Any incidental findings of clinical significance identified during data analysis will be handled in accordance with applicable institutional policies.
+
+# Plans for Disseminating and Communicating Study Results
+
+Following completion of data collection and analysis across all participating sites, results will be aggregated by the study coordinator and made publicly available on the OHDSI website (https://www.ohdsi.org/research/ongoing-research) and through the OHDSI Evidence Explorer Shiny application, enabling open inspection of results from all contributing databases. All analytical code will remain publicly available on the OHDSI GitHub repository throughout the study.
+
+At least one manuscript describing the study design, methods, and results will be written and submitted for publication to a peer-reviewed scientific journal. Authorship will follow the ICMJE guidelines; all site investigators who contribute data and fulfill ICMJE authorship criteria will be eligible for authorship or acknowledgment. The study protocol will be registered and made publicly available prior to initiation of any data analyses, in keeping with OHDSI open science principles.
+
+\clearpage
+
+# References {-}
+
+<div id="refs"></div>
+
+\clearpage
+
+\centerline{\Huge Appendix}
+
+# (APPENDIX) Appendix {-}
+
+# Exposure Cohort Definitions
+```{r debug-format, echo=FALSE}
+cat("pandoc_to():", knitr::pandoc_to(), "\n")
+cat("is_latex_output():", knitr::is_latex_output(), "\n")
+cat("is_html_output():", knitr::is_html_output(), "\n")
+```
+
+```{r exposure-cohorts, echo=FALSE, results="asis", warning=FALSE, message=FALSE}
+source("../R/PrettyOutput.R")
+
+printCohortDefinitionFromNameAndJson(
+  name = "Transcatheter Aortic Valve Replacement (Target, ATLAS ID: 900)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_TAVR.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "Surgical Aortic Valve Replacement (Comparator, ATLAS ID: 902)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_SAVR.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "Transcatheter Aortic Valve Replacement (less than 80 yrs) (Target, ATLAS ID: 901)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_TAVR_less80.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "Surgical Aortic Valve Replacement (less than 80 yrs) (Comparator, ATLAS ID: 903)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_SAVR_less80.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "Transcatheter Aortic Valve Replacement-Medtronic (Target, ATLAS ID: 904)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_TAVR_Medtronic.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "Transcatheter Aortic Valve Replacement-Medtronic (less than 80 yrs) (Target, ATLAS ID: 905)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_TAVR_Medtronic_less80.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "Transcatheter Aortic Valve Replacement-Edwards (Target, ATLAS ID: 906)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_TAVR_Edwards.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "Transcatheter Aortic Valve Replacement-Edwards (less than 80 yrs) (Target, ATLAS ID: 907)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_TAVR_Edwards_less80.json"),
+  withConcepts = FALSE
+)
+
+
+```
+
+# Outcome Cohort Definitions
+
+```{r outcome-cohorts, echo=FALSE, results="asis", warning=FALSE, message=FALSE}
+source("../R/PrettyOutput.R")
+
+printCohortDefinitionFromNameAndJson(
+  name = "Composite Outcomes All-cause mortality or disabling stroke (ATLAS Cohort ID: 908)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_Primary_Allcause_mortality_or_disabling_stroke.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "Reintervention (ATLAS Cohort ID: 909)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_Primary_Reintervention.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "Inpatient Stroke (ATLAS Cohort ID: 910)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_Secondary_inpatient_stroke.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "All Stroke (ATLAS Cohort ID: 911)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_Secondary_All_stroke.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "Aortic valve hospitalization (ATLAS Cohort ID: 912)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_Secondary_aortic_valve_hospitalization.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "Composite Outcomes All-cause mortality or disabling stroke or aortic valve hospitalization (ATLAS Cohort ID: 913)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_Secondary_Allcause_mortalitydisabling_strokeaortic_valve_hospitalization.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "New PPI (ATLAS Cohort ID: 914)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_Secondary_New_PPI.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "Atrial_fibrillation (ATLAS Cohort ID: 915)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_Secondary_Atrial_fibrillation.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "All-cause mortality (ATLAS Cohort ID: 916)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_Secondary_Allcause_mortality.json"),
+  withConcepts = FALSE
+)
+
+printCohortDefinitionFromNameAndJson(
+  name = "Myocardial infarction (ATLAS Cohort ID: 917)",
+  json = SqlRender::readSql("../inst/cohorts/26HIRAMDV_Secondary_Myocardial_infarction.json"),
+  withConcepts = FALSE
+)
+
+```
+
