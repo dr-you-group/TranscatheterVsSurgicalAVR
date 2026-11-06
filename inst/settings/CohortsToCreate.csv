@@ -22,7 +22,11 @@ atlasId,atlasName,cohortId,name
 871,"[26HIRAMDV] TAVR(evolut,sapien)_less80",871,26HIRAMDV_TAVRevolutsapien_less80
 874,[26HIRAMDV] TAVR_ob0,874,26HIRAMDV_TAVR_ob0
 875,[26HIRAMDV] SAVR_ob0,875,26HIRAMDV_SAVR_ob0
+878,"[26HIRAMDV] TAVR (Evolut,Sapien)_ob0",878,26HIRAMDV_TAVR_EvolutSapien_ob0
+880,[26HIRAMDV] TAVR (Edwards)_ob0,880,26HIRAMDV_TAVR_Edwards_ob0
+881,[26HIRAMDV] TAVR (Medtronic)_ob0,881,26HIRAMDV_TAVR_Medtronic_ob0
 876,[26HIRAMDV] TAVR_less80_ob0,876,26HIRAMDV_TAVR_less80_ob0
 877,[26HIRAMDV] SAVR_less80_ob0,877,26HIRAMDV_SAVR_less80_ob0
-878,"[26HIRAMDV] TAVR (Evolut,Sapien)_ob0",878,26HIRAMDV_TAVR_EvolutSapien_ob0
 879,"[26HIRAMDV] TAVR(evolut,sapien)_less80_ob0",879,26HIRAMDV_TAVRevolutsapien_less80_ob0
+882,[26HIRAMDV] TAVR (Edwards)_less80_ob0,882,26HIRAMDV_TAVR_Edwards_less80_ob0
+883,[26HIRAMDV] TAVR (Medtronic)_less80_ob0,883,26HIRAMDV_TAVR_Medtronic_less80_ob0

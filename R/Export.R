@@ -69,6 +69,14 @@ exportResults <- function(outputFolder,
                     minCellCount = minCellCount,
                     maxCores = maxCores)
   
+  # The UDI-DI tables, if runUdiDiAnalysis() has been run. Listed by name so that
+  # files left over from older versions of the analysis are not shared:
+  udiFiles <- file.path(outputFolder, "udiDi", udiDiResultFiles)
+  udiFiles <- udiFiles[file.exists(udiFiles)]
+  if (length(udiFiles) > 0) {
+    file.copy(udiFiles, exportFolder, overwrite = TRUE)
+  }
+
   # Add all to zip file -------------------------------------------------------------------------------
   ParallelLogger::logInfo("Adding results to zip file")
   zipName <- file.path(exportFolder, sprintf("Results_%s.zip", databaseId))

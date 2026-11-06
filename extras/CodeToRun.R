@@ -30,6 +30,7 @@ databaseDescription <- "Medicare Claims Synthetic Public Use Files (SynPUFs) wer
 
 # For Oracle: define a schema that can be used to emulate temp tables:
 oracleTempSchema <- NULL
+deviceExposureTable <- NULL    # keep this setting
 
 execute(connectionDetails = connectionDetails,
         cdmDatabaseSchema = cdmDatabaseSchema,
@@ -42,6 +43,9 @@ execute(connectionDetails = connectionDetails,
         databaseDescription = databaseDescription,
         createCohorts = TRUE,
         synthesizePositiveControls = TRUE,
+        runCompetingRisk = TRUE,
+        runUdiDi = TRUE,
+        deviceExposureTable = deviceExposureTable,
         runAnalyses = TRUE,
         packageResults = TRUE,
         maxCores = maxCores)

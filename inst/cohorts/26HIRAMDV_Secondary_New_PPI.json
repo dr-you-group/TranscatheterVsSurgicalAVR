@@ -1,5 +1,5 @@
 {
-  "ExpressionLimit": {"Type": "First"},
+  "ExpressionLimit": {"Type": "All"},
   "CollapseSettings": {
     "CollapseType": "ERA",
     "EraPad": 0
@@ -282,7 +282,7 @@
       "Modifier": null,
       "Age": null
     }}],
-    "PrimaryCriteriaLimit": {"Type": "First"},
+    "PrimaryCriteriaLimit": {"Type": "All"},
     "ObservationWindow": {
       "PostDays": 0,
       "PriorDays": 0

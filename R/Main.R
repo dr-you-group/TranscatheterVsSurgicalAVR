@@ -47,6 +47,11 @@
 #' @param createCohorts        Create the cohortTable table with the exposure and outcome cohorts?
 #' @param synthesizePositiveControls  Should positive controls be synthesized?
 #' @param runAnalyses          Perform the cohort method analyses?
+#' @param runCompetingRisk     Perform the competing risk complementary analysis?
+#' @param runUdiDi             Perform the UDI-DI resolution analysis (see \code{\link{runUdiDiAnalysis}})?
+#' @param deviceExposureTable  Fully qualified name of the table holding device exposures with
+#'                             \code{unique_device_id}, for the UDI-DI analysis. NULL uses
+#'                             \code{cdmDatabaseSchema.device_exposure}.
 #' @param packageResults       Should results be packaged for later sharing?     
 #' @param maxCores             How many parallel cores should be used? If more cores are made available
 #'                             this can speed up the analyses.
@@ -82,6 +87,9 @@ execute <- function(connectionDetails,
                     createCohorts = TRUE,
                     synthesizePositiveControls = TRUE,
                     runAnalyses = TRUE,
+                    runCompetingRisk = TRUE,
+                    runUdiDi = TRUE,
+                    deviceExposureTable = NULL,
                     packageResults = TRUE,
                     maxCores = 4,
                     minCellCount= 5) {
@@ -129,6 +137,37 @@ execute <- function(connectionDetails,
                     maxCores = maxCores)
   }
   
+  if (runCompetingRisk) {
+    ParallelLogger::logInfo("Running competing risk analysis")
+    # Complementary analysis: never let it abort the main pipeline.
+    tryCatch({
+      runCompetingRiskAnalysis(outputFolder = outputFolder,
+                               databaseId = databaseId,
+                               minCellCount = minCellCount)
+    }, error = function(e) {
+      ParallelLogger::logWarn("Competing risk analysis failed and was skipped: ", e$message)
+    })
+  }
+
+  if (runUdiDi) {
+    ParallelLogger::logInfo("Running UDI-DI resolution analysis")
+    # Complementary analysis: never let it abort the main pipeline. Needs only the
+    # cohort table, not the CohortMethod output. minCellCount is deliberately not
+    # passed: the UDI-DI tables are not cell-count censored.
+    tryCatch({
+      runUdiDiAnalysis(connectionDetails = connectionDetails,
+                       cdmDatabaseSchema = cdmDatabaseSchema,
+                       cohortDatabaseSchema = cohortDatabaseSchema,
+                       cohortTable = cohortTable,
+                       oracleTempSchema = oracleTempSchema,
+                       outputFolder = outputFolder,
+                       databaseId = databaseId,
+                       deviceExposureTable = deviceExposureTable)
+    }, error = function(e) {
+      ParallelLogger::logWarn("UDI-DI analysis failed and was skipped: ", e$message)
+    })
+  }
+
   if (packageResults) {
     ParallelLogger::logInfo("Packaging results")
     exportResults(outputFolder = outputFolder,
