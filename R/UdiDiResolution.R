@@ -240,6 +240,7 @@ buildUdiAtRisk <- function(outcomeRows, mapped, riskWindowStart, riskWindowEnd) 
 
 # Kaplan-Meier cumulative risk at `atDays`, as a percentage.
 kmUdiRisk <- function(time, event, atDays) {
+  if (max(time) < atDays) return(NA_real_)
   if (sum(event) == 0) return(0)
   fit <- survival::survfit(survival::Surv(time, event) ~ 1)
   round(100 * (1 - summary(fit, times = atDays, extend = TRUE)$surv[1]), 1)

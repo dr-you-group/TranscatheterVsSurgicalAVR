@@ -467,7 +467,7 @@ hasCrStrata <- function(crData, stratified) {
 # cox.zph() is not always computable.
 testCrProportionalHazards <- function(fit) {
   tryCatch({
-    zph <- cox.zph(fit)
+    zph <- survival::cox.zph(fit)
     list(chiSq = zph$table["treatment", "chisq"],
          df = zph$table["treatment", "df"],
          p = zph$table["treatment", "p"])
@@ -500,9 +500,9 @@ summarizeCrFit <- function(fit) {
 fitCauseSpecificCox <- function(crData, stratified) {
   crData$csStatus <- as.integer(crData$status == 1)
   if (hasCrStrata(crData, stratified)) {
-    fit <- coxph(Surv(time, csStatus) ~ treatment + strata(stratumId), data = crData)
+    fit <- survival::coxph(survival::Surv(time, csStatus) ~ treatment + strata(stratumId), data = crData)
   } else {
-    fit <- coxph(Surv(time, csStatus) ~ treatment, data = crData)
+    fit <- survival::coxph(survival::Surv(time, csStatus) ~ treatment, data = crData)
   }
   return(summarizeCrFit(fit))
 }
@@ -521,13 +521,13 @@ fitFineGrayModel <- function(crData, stratified) {
   } else {
     fgInput <- crData[, c("time", "fstatus", "treatment")]
   }
-  fgData <- finegray(Surv(time, fstatus) ~ ., data = fgInput, etype = "event")
+  fgData <- survival::finegray(survival::Surv(time, fstatus) ~ ., data = fgInput, etype = "event")
   if (useStrata) {
-    fit <- coxph(Surv(fgstart, fgstop, fgstatus) ~ treatment + strata(stratumId),
+    fit <- survival::coxph(survival::Surv(fgstart, fgstop, fgstatus) ~ treatment + strata(stratumId),
                  data = fgData,
                  weights = fgwt)
   } else {
-    fit <- coxph(Surv(fgstart, fgstop, fgstatus) ~ treatment,
+    fit <- survival::coxph(survival::Surv(fgstart, fgstop, fgstatus) ~ treatment,
                  data = fgData,
                  weights = fgwt)
   }
