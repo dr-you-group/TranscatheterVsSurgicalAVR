@@ -42,9 +42,9 @@ execute(connectionDetails = connectionDetails,
         databaseName = databaseName,
         databaseDescription = databaseDescription,
         createCohorts = TRUE,
-        synthesizePositiveControls = TRUE,
+        synthesizePositiveControls = FALSE,
         runCompetingRisk = TRUE,
-        runUdiDi = TRUE,
+        runUdiDi = TRUE,               # Set to TRUE if UDI data are available at your institution. If not, set FALSE.
         deviceExposureTable = deviceExposureTable,
         runAnalyses = TRUE,
         packageResults = TRUE,
@@ -55,7 +55,7 @@ dataFolder <- file.path(outputFolder, "shinyData")
 
 # You can inspect the results if you want:
 prepareForEvidenceExplorer(resultsZipFile = resultsZipFile, dataFolder = dataFolder)
-launchEvidenceExplorer(dataFolder = dataFolder, blind = TRUE, launch.browser = FALSE)
+launchEvidenceExplorer(dataFolder = dataFolder, blind = FALSE, launch.browser = FALSE)
 
 # Upload the results to the OHDSI SFTP server:
 privateKeyFileName <- ""
