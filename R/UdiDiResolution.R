@@ -17,42 +17,58 @@
 # The TAVR cohorts analysed by default: TAVR_ob0 (874) and TAVR_less80_ob0 (876).
 udiDiTavrCohortIds <- c(874, 876)
 
-# The tables written by runUdiDiAnalysis(), in outputFolder/udiDi, one set per
-# TAVR cohort: tab_udi_products_874.csv, tab_udi_products_876.csv, ...
-udiDiResultTables <- c("tab_udi_products",
-                       "tab_udi_reintervention_by_manufacturer",
-                       "tab_udi_reintervention_by_generation",
-                       "tab_udi_reintervention_by_size",
-                       "tab_udi_reintervention_by_size_pooled")
-udiDiFileName <- function(table, tavrCohortId) {
-  paste0(table, "_", tavrCohortId, ".csv")
+# The outcomes analysed by default: reintervention (797) and new PPI (862).
+udiDiOutcomeIds <- c(797, 862)
+
+# The tables written by runUdiDiAnalysis(), in outputFolder/udiDi. The product
+# table is written once per TAVR cohort (tab_udi_products_874.csv, ...), the
+# outcome tables once per TAVR cohort and outcome
+# (tab_udi_outcome_by_manufacturer_874_797.csv, ...).
+udiDiProductTable <- "tab_udi_products"
+udiDiOutcomeTables <- c("tab_udi_outcome_by_manufacturer",
+                        "tab_udi_outcome_by_generation",
+                        "tab_udi_outcome_by_size",
+                        "tab_udi_outcome_by_size_pooled")
+udiDiFileName <- function(table, tavrCohortId, outcomeId = NULL) {
+  paste0(paste(c(table, tavrCohortId, outcomeId), collapse = "_"), ".csv")
 }
-udiDiResultFiles <- as.vector(outer(udiDiResultTables, udiDiTavrCohortIds, udiDiFileName))
+udiDiResultFiles <- local({
+  combos <- expand.grid(table = udiDiOutcomeTables,
+                        tavrCohortId = udiDiTavrCohortIds,
+                        outcomeId = udiDiOutcomeIds,
+                        stringsAsFactors = FALSE)
+  c(vapply(udiDiTavrCohortIds, function(t) udiDiFileName(udiDiProductTable, t), character(1)),
+    mapply(udiDiFileName, combos$table, combos$tavrCohortId, combos$outcomeId, USE.NAMES = FALSE))
+})
 
 #' Run the UDI-DI analysis
 #'
 #' @description
 #' Resolves the index valve of each TAVR cohort (by default 874 and 876) to a product - model
-#' generation and valve size - through its UDI-DI, and describes aortic valve
-#' reintervention (cohort 797) by manufacturer, generation and size. The SAVR
-#' comparator (782) has no UDI-DI and is not analysed.
+#' generation and valve size - through its UDI-DI, and describes each outcome -
+#' by default aortic valve reintervention (cohort 797) and new permanent
+#' pacemaker implantation (cohort 862) - by manufacturer, generation and size.
+#' The SAVR comparator (782) has no UDI-DI and is not analysed.
 #'
 #' @details
 #' Read-only: a few SELECT queries, aggregated in R. Needs only the cohort
-#' table, not the CohortMethod output. Writes five aggregate CSVs per TAVR
-#' cohort to \code{outputFolder/udiDi}, the cohort ID appended to the file
-#' name; see \code{udiDiResultFiles}. Only the files of the default cohorts
-#' (\code{udiDiTavrCohortIds}) are picked up by \code{exportResults}. Hospital item codes
-#' (device_source_value) and raw unique_device_id values are never written.
+#' table, not the CohortMethod output. Writes one product CSV per TAVR cohort
+#' and four outcome CSVs per TAVR cohort and outcome to \code{outputFolder/udiDi},
+#' the cohort ID (and outcome ID) appended to the file name; see
+#' \code{udiDiResultFiles}. Only the files of the default cohorts
+#' (\code{udiDiTavrCohortIds}, \code{udiDiOutcomeIds}) are picked up by
+#' \code{exportResults}. Hospital item codes (device_source_value) and raw
+#' unique_device_id values are never written.
 #'
 #' The outcome tables are DESCRIPTIVE: no propensity score, no adjusted
-#' estimate. Reintervention is rare, so the generation and size cells are a
+#' estimate. The outcomes are rare, so the generation and size cells are a
 #' feasibility check rather than a result.
 #'
-#' The outcome cohort is First-limited (one row per person), so a patient whose
-#' row falls on or before the index date can never have a post-index event.
-#' Those patients are excluded from the at-risk set rather than counted as
-#' denominator.
+#' Each outcome is analysed separately. The outcome cohorts are First-limited
+#' (one row per person), so a patient whose row falls on or before the index
+#' date can never have a post-index event. Those patients are excluded from the
+#' at-risk set of that outcome rather than counted as denominator - for new PPI,
+#' this removes patients who already had a pacemaker before the index date.
 #'
 #' @param connectionDetails    An object of type \code{connectionDetails} as created using the
 #'                             \code{\link[DatabaseConnector]{createConnectionDetails}} function.
@@ -67,7 +83,7 @@ udiDiResultFiles <- as.vector(outer(udiDiResultTables, udiDiTavrCohortIds, udiDi
 #' @param deviceExposureTable  Fully qualified name of the table holding the device exposures with
 #'                             \code{unique_device_id}. NULL uses the CDM \code{device_exposure}.
 #' @param tavrCohortIds        The TAVR cohorts, each analysed separately.
-#' @param outcomeId            The reintervention outcome cohort.
+#' @param outcomeIds           The outcome cohorts, each analysed separately.
 #' @param valveConceptId       The standard device concept every TAVR valve maps to.
 #' @param riskWindowStart      Start of the risk window in days after index, as in analysis 112.
 #' @param riskWindowEnd        End of the risk window in days after index, as in analysis 112.
@@ -85,7 +101,7 @@ runUdiDiAnalysis <- function(connectionDetails,
                              databaseId,
                              deviceExposureTable = NULL,
                              tavrCohortIds = udiDiTavrCohortIds,
-                             outcomeId = 797,
+                             outcomeIds = udiDiOutcomeIds,
                              valveConceptId = 3661561,
                              riskWindowStart = 1,
                              riskWindowEnd = 3285) {
@@ -123,7 +139,7 @@ runUdiDiAnalysis <- function(connectionDetails,
                     valve_concept_id = valveConceptId)
     outcomeRows <- runQuery("UdiOutcomeRows.sql",
                             tavrCohortId = tavrCohortId,
-                            outcome_cohort_ids = outcomeId)
+                            outcome_cohort_ids = outcomeIds)
 
     # Resolve each patient to one product ----------------------------------------
     raw$matchedDi <- matchUdiDi(raw$unique_device_id, udiReference$udiDi)
@@ -150,21 +166,24 @@ runUdiDiAnalysis <- function(connectionDetails,
       mutate(nPatients = dplyr::coalesce(.data$nPatients, 0L)) %>%
       arrange(.data$manufacturer, .data$generation, .data$sizeMm) %>%
       select("manufacturer", "generation", "sizeMm", "modelName", "udiDi", "nPatients")
-    writeUdiTable(products, udiFolder, udiDiFileName("tab_udi_products", tavrCohortId), databaseId)
+    writeUdiTable(products, udiFolder, udiDiFileName(udiDiProductTable, tavrCohortId), databaseId)
 
-    # Reintervention ---------------------------------------------------------------
-    atRisk <- buildUdiAtRisk(outcomeRows = outcomeRows,
-                             mapped = mapped,
-                             riskWindowStart = riskWindowStart,
-                             riskWindowEnd = riskWindowEnd)
+    # Outcomes, one set of tables each ---------------------------------------------
     groupings <- list(by_manufacturer = "manufacturer",
                       by_generation = c("manufacturer", "generation"),
                       by_size = c("manufacturer", "sizeMm"),
                       by_size_pooled = "sizeMm")
-    for (name in names(groupings)) {
-      table <- summariseUdiOutcome(atRisk, groupings[[name]])
-      fileName <- udiDiFileName(paste0("tab_udi_reintervention_", name), tavrCohortId)
-      writeUdiTable(table, udiFolder, fileName, databaseId)
+    for (outcomeId in outcomeIds) {
+      atRisk <- buildUdiAtRisk(outcomeRows = outcomeRows[outcomeRows$cohort_definition_id == outcomeId, ],
+                               mapped = mapped,
+                               riskWindowStart = riskWindowStart,
+                               riskWindowEnd = riskWindowEnd,
+                               label = paste0("TAVR cohort ", tavrCohortId, ", outcome ", outcomeId))
+      for (name in names(groupings)) {
+        table <- summariseUdiOutcome(atRisk, groupings[[name]])
+        fileName <- udiDiFileName(paste0("tab_udi_outcome_", name), tavrCohortId, outcomeId)
+        writeUdiTable(table, udiFolder, fileName, databaseId)
+      }
     }
   }
 
@@ -211,8 +230,8 @@ matchUdiDi <- function(raw, reference) {
 
 # Time at risk opens riskWindowStart days after index and closes at the end of
 # observation or riskWindowEnd. Patients whose (only) outcome row is on or
-# before index are excluded.
-buildUdiAtRisk <- function(outcomeRows, mapped, riskWindowStart, riskWindowEnd) {
+# before index are excluded. outcomeRows must hold a single outcome.
+buildUdiAtRisk <- function(outcomeRows, mapped, riskWindowStart, riskWindowEnd, label = "") {
   perPerson <- outcomeRows %>%
     inner_join(mapped %>% select("subject_id", "cohortStartDate"), by = "subject_id") %>%
     mutate(daysFromIndex = as.numeric(.data$outcome_date - .data$cohortStartDate)) %>%
@@ -231,9 +250,9 @@ buildUdiAtRisk <- function(outcomeRows, mapped, riskWindowStart, riskWindowEnd) 
            timeAtRisk = ifelse(.data$event, .data$daysToEvent, .data$daysToEnd)) %>%
     filter(.data$timeAtRisk >= riskWindowStart)
 
-  ParallelLogger::logInfo("UDI-DI: ", nrow(mapped) - nrow(atRisk), " of ", nrow(mapped),
+  ParallelLogger::logInfo("UDI-DI, ", label, ": ", nrow(mapped) - nrow(atRisk), " of ", nrow(mapped),
                           " patients excluded from the at-risk set (outcome on or before index, ",
-                          "or no time at risk); ", sum(atRisk$event), " reinterventions")
+                          "or no time at risk); ", sum(atRisk$event), " events")
   atRisk
 }
 
